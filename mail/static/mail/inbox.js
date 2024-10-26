@@ -26,20 +26,21 @@ document.addEventListener("DOMContentLoaded", () => {
 			})
 				.then((response) => response.json())
 				.then((data) => {
-					console.log(error);
-					const error_msg_container = document.createElement("div");
-					error_msg_container.className =
-						"mt-3 p-3 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3";
+					if ("error" in data) {
+						const error_msg_container = document.createElement("div");
+						error_msg_container.className =
+							"mt-3 p-3 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3";
 
-					error_msg_container.innerHTML = data.error;
-					const error_div = document.querySelector("#error");
-					error_div.innerHTML = "";
-					document.querySelector("#error").appendChild(error_msg_container);
+						error_msg_container.innerHTML = data.error;
+						const error_div = document.querySelector("#error");
+						error_div.innerHTML = "";
+						document.querySelector("#error").appendChild(error_msg_container);
+					}
 				})
 				.catch((error) => {
 					console.log(error);
 				});
-			console.log({ recipients, subject, body });
+			compose_email();
 			event.preventDefault();
 		});
 	// By default, load the inbox
