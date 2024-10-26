@@ -74,28 +74,30 @@ function load_mailbox(mailbox) {
 			.then((emails) => {
 				for (const email of emails) {
 					console.log(email);
-					const div = document.createElement("li");
-					div.className =
-						"list-group-item my-2 border d-flex flex-row align-items-center";
+					const li = document.createElement("li");
+					li.className = "list-group-item my-2 border d-flex flex-row";
 
 					const email_id = document.createElement("input");
 					setAttributes(email_id, { id: email.id, type: "hidden" });
 
 					const email_sender = document.createElement("p");
-					email_sender.textContent = email.sender;
-					email_sender.className = "me-2 fw-bold fs-4";
+					if (type === "sent") {
+						email_sender.textContent = email.recipients;
+					} else {
+						email_sender.textContent = email.sender;
+					}
+					email_sender.className = "me-2 fw-bold";
 
 					const email_subject = document.createElement("p");
 					email_subject.textContent = email.subject;
-					email_subject.className = "fs-5";
+					email_subject.className = "";
 
 					const email_timestamp = document.createElement("p");
 					email_timestamp.textContent = email.timestamp;
 					email_timestamp.className = "ms-auto";
 
-					div.append(email_id, email_sender, email_subject, email_timestamp);
-					console.log(div);
-					emails_view.append(div);
+					li.append(email_id, email_sender, email_subject, email_timestamp);
+					emails_view.append(li);
 				}
 			})
 			.catch((error) => console.log(error));
