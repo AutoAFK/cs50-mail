@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	load_mailbox("inbox");
 });
 
-function compose_email(recipients, subject) {
+function compose_email(recipients, subject, timestamp_last_email, sender) {
 	// Show compose view and hide other views
 	document.querySelector("#emails-view").style.display = "none";
 	document.querySelector("#compose-view").style.display = "block";
@@ -62,7 +62,10 @@ function compose_email(recipients, subject) {
 			: subject.includes("Re")
 				? subject
 				: `Re: ${subject}`;
-	document.querySelector("#compose-body").value = "";
+	document.querySelector("#compose-body").value =
+		recipients instanceof Event
+			? ""
+			: `On ${timestamp_last_email} ${sender} wrote:`;
 }
 
 function load_mailbox(mailbox) {
@@ -113,8 +116,15 @@ function load_mailbox(mailbox) {
 								reply.onclick = () => {
 									const recipients = data.sender;
 									const subject = data.subject;
+									const timestamp_last_email = data.timestamp;
+									const sender = data.sender;
 									email_container.innerHTML = "";
-									compose_email(recipients, subject);
+									compose_email(
+										recipients,
+										subject,
+										timestamp_last_email,
+										sender,
+									);
 								};
 								reply.className = "btn btn btn-outline-primary me-2";
 								reply.textContent = "Reply";
