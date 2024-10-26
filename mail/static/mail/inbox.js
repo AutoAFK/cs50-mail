@@ -26,9 +26,19 @@ document.addEventListener("DOMContentLoaded", () => {
 			})
 				.then((response) => response.json())
 				.then((data) => {
-					//TODO: Implement what happen.
+					console.log(error);
+					const error_msg_container = document.createElement("div");
+					error_msg_container.className =
+						"mt-3 p-3 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-3";
+
+					error_msg_container.innerHTML = data.error;
+					const error_div = document.querySelector("#error");
+					error_div.innerHTML = "";
+					document.querySelector("#error").appendChild(error_msg_container);
 				})
-				.catch((error) => console.log(error));
+				.catch((error) => {
+					console.log(error);
+				});
 			console.log({ recipients, subject, body });
 			event.preventDefault();
 		});
@@ -62,17 +72,18 @@ function load_mailbox(mailbox) {
 			.then((response) => response.json())
 			.then((emails) => {
 				for (const email of emails) {
+					console.log(email);
 					const div = document.createElement("div");
-					const email_id = document.createElement("input", {
-						id: email.id,
-						type: "hidden",
-					});
-					const email_sender = document.createElement("h2", {
-						value: email.sender,
-					});
-					const email_subject = document.createElement("h3", {
-						value: email.subject,
-					});
+
+					const email_id = document.createElement("input");
+					setAttributes(email_id, { id: email.id, type: "hidden" });
+
+					const email_sender = document.createElement("h2");
+					email_sender.value = email.sender;
+
+					const email_subject = document.createElement("h3");
+					email_subject.value = email.subject;
+
 					div.append(email_id, email_sender, email_subject);
 					emails_view.append(div);
 				}
@@ -80,4 +91,10 @@ function load_mailbox(mailbox) {
 			.catch((error) => console.log(error));
 	};
 	add_emails(mailbox);
+}
+
+function setAttributes(element, attributes) {
+	for (const key in attributes) {
+		element.setAttribute(key, attributes[key]);
+	}
 }
