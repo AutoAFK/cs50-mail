@@ -47,20 +47,28 @@ document.addEventListener("DOMContentLoaded", () => {
 	load_mailbox("inbox");
 });
 
-function compose_email() {
+function compose_email(recipients, subject) {
 	// Show compose view and hide other views
 	document.querySelector("#emails-view").style.display = "none";
 	document.querySelector("#compose-view").style.display = "block";
+	document.querySelector("#email").innerHTML = "";
 
 	// Clear out composition fields
-	document.querySelector("#compose-recipients").value = "";
-	document.querySelector("#compose-subject").value = "";
+	document.querySelector("#compose-recipients").value =
+		recipients instanceof Event ? "" : recipients;
+	document.querySelector("#compose-subject").value =
+		recipients instanceof Event
+			? ""
+			: subject.includes("Re")
+				? subject
+				: `Re: ${subject}`;
 	document.querySelector("#compose-body").value = "";
 }
 
 function load_mailbox(mailbox) {
 	// Show the mailbox and hide other views
 	document.querySelector("#emails-view").style.display = "block";
+	document.querySelector("#email").innerHTML = "";
 	document.querySelector("#compose-view").style.display = "none";
 
 	// Show the mailbox name
@@ -73,9 +81,92 @@ function load_mailbox(mailbox) {
 			.then((response) => response.json())
 			.then((emails) => {
 				for (const email of emails) {
-					console.log(email);
+					const open_email = () => {
+						fetch(`/emails/${email.id}`, {
+							method: "PUT",
+							body: JSON.stringify({
+								read: true,
+							}),
+						});
+						emails_view.style.display = "none";
+
+						fetch(`/emails/${email.id}`)
+							.then((response) => response.json())
+							.then((data) => {
+								const email_container = document.querySelector("#email");
+								email_container.style.display = "block";
+								const container = document.createElement("div");
+
+								const sender = document.createElement("p");
+								sender.innerHTML = `<b>From:</b> ${data.sender}`;
+
+								const recipients = document.createElement("p");
+								recipients.innerHTML = `<b>To:</b> ${data.recipients}`;
+
+								const subject = document.createElement("p");
+								subject.innerHTML = `<b>Subject:</b> ${data.subject}`;
+
+								const timestamp = document.createElement("p");
+								timestamp.innerHTML = `<b>Timestamp:</b> ${data.timestamp}`;
+
+								const reply = document.createElement("button");
+								reply.onclick = () => {
+									const recipients = data.sender;
+									const subject = data.subject;
+									email_container.innerHTML = "";
+									compose_email(recipients, subject);
+								};
+								reply.className = "btn btn btn-outline-primary me-2";
+								reply.textContent = "Reply";
+
+								const archive = document.createElement("button");
+								archive.textContent = data.archived ? "Unarchive" : "Archive";
+								archive.className = "btn btn btn-outline-primary";
+								archive.onclick = () => {
+									fetch(`/emails/${data.id}`, {
+										method: "PUT",
+										body: JSON.stringify({
+											archived: !data.archived,
+										}),
+									}).then(() => {
+										if (data.archived) {
+											load_mailbox("inbox");
+										} else {
+											load_mailbox("archive");
+										}
+									});
+								};
+
+								const body = document.createElement("p");
+								body.innerHTML = data.body;
+
+								const horizontal_ruler = document.createElement("hr");
+
+								container.append(
+									sender,
+									recipients,
+									subject,
+									timestamp,
+									reply,
+									archive,
+									horizontal_ruler,
+									body,
+								);
+
+								for (const child of container.children) {
+									child.className += " mb-2";
+								}
+
+								email_container.append(container);
+							});
+					};
+
 					const li = document.createElement("li");
 					li.className = "list-group-item my-2 border d-flex flex-row";
+					if (email.read) {
+						li.className += " bg-secondary-subtle";
+					}
+					li.onclick = open_email;
 
 					const email_id = document.createElement("input");
 					setAttributes(email_id, { id: email.id, type: "hidden" });
